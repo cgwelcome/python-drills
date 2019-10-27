@@ -1,28 +1,41 @@
-from collections import defaultdict, namedtuple, deque
+from collections import defaultdict, deque
 
-def bfs(graph, src):
-    discovered = defaultdict(bool)
-    q = deque()
-    discovered[src] = True
-    q.append(src)
-    while len(q) > 0:
-        node = q.popleft()
+def discovered_bfs(graph, src):
+    discovered = set([src])
+    queue = deque([src])
+    while queue:
+        node = queue.popleft()
         print(node)
-        for adj in graph.adj[node]:
-            if not discovered[adj]:
-                discovered[adj] = True
-                q.append(adj)
+        queue.extend(graph.adj[node] - discovered)
+        discovered |= graph.adj[node]
 
+def visitedwithif_bfs(graph, src):
+    visited = set()
+    queue = deque([src])
+    while queue:
+        node = queue.popleft()
+        if node not in visited:
+            print(node)
+            queue.extend(graph.adj[node] - visited);
+            visited.add(node)
+
+def visited_bfs(graph, src):
+    visited = set()
+    queue = deque([src])
+    while queue:
+        node = queue.popleft()
+        print(node)
+        queue.extend(graph.adj[node] - visited - set(queue));
+        visited.add(node)
 
 class Graph:
-    def __init__(self, edges=[]):
-        self.adj = defaultdict(list)
-        for edge in edges:
-            self.add_edge(edge)
+    def __init__(self):
+        self.adj = defaultdict(set)
 
     def add_edge(self, src, dest):
-        self.adj[dest].append(src)
-        self.adj[src].append(dest)
+        self.adj[src].add(dest)
+        self.adj[dest].add(src)
+
 
 if __name__ == '__main__':
     g = Graph()
@@ -30,8 +43,10 @@ if __name__ == '__main__':
     g.add_edge(1, 3)
     g.add_edge(2, 4)
     g.add_edge(2, 5)
-    g.add_edge(3, 3)
+    g.add_edge(3, 5)
     g.add_edge(4, 5)
     g.add_edge(4, 6)
     g.add_edge(5, 6)
-    bfs(g, 2)
+    visited_bfs(g, 1)
+    visitedwithif_bfs(g, 1)
+    discovered_bfs(g, 1)
