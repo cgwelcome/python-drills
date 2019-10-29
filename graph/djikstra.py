@@ -1,10 +1,11 @@
-from collections import defaultdict, namedtuple
+from collections import defaultdict, deque, namedtuple
 import heapq
 
 class Entry:
-    def __init__(self, index, dist):
+    def __init__(self, index, dist, prev=None):
         self.index = index
         self.dist = dist
+        self.prev = prev
         self.valid = True
 
     def __lt__(self, other):
@@ -36,9 +37,18 @@ def djikstra(graph, src):
         for adj, weight in graph.adj[pivot.index].items():
             if pivot.dist + weight < entries[adj].dist:
                 entries[adj].valid = False
-                entries[adj] = Entry(adj, pivot.dist + weight)
+                entries[adj] = Entry(adj, pivot.dist + weight, pivot.index)
                 heapq.heappush(heap, entries[adj])
-    return { i: entry.dist for i, entry in entries.items() }
+    return { i: (entry.dist, entry.prev) for i, entry in entries.items() }
+
+def recover_path(lookup, dest):
+    stack = deque()
+    node = dest
+    while lookup[node][1] is not None:
+        stack.appendleft(node)
+        node = lookup[node][1]
+    stack.appendleft(node)
+    return stack
 
 class Graph:
     def __init__(self):
@@ -65,4 +75,7 @@ if __name__ == '__main__':
     g.add_edge(6, 8, 6)
     g.add_edge(7, 8, 7)
     d = djikstra(g, 0)
-    print(d)
+    path = recover_path(d, 6)
+    print(path)
+    path = recover_path(d, 8)
+    print(path)
